@@ -5,6 +5,7 @@ import { startTransition, useEffect, useEffectEvent, useState } from "react";
 import { OrderBook } from "@/components/order-book";
 import { PriceChart } from "@/components/price-chart";
 import type { MarketOverviewPayload } from "@/lib/hyperliquid";
+import { kucoinBotCatalog } from "@/lib/kucoin-bot-catalog";
 import { generateStrategyDecisions, runBacktestSummaries } from "@/lib/strategy-engine";
 import type { BacktestSummary, OrderBookLevel, StrategyDecision, StrategyId } from "@/lib/types";
 
@@ -557,6 +558,32 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
             </div>
           </div>
           <OrderBook asks={overview.orderBook.asks} bids={overview.orderBook.bids} />
+        </div>
+      </section>
+
+      <section className="catalog-section">
+        <div className="panel-header">
+          <div>
+            <span className="panel-title">KuCoin bot catalog</span>
+            <h2>All bot families mapped into this project</h2>
+          </div>
+        </div>
+        <div className="catalog-grid">
+          {kucoinBotCatalog.map((bot) => (
+            <article className="catalog-card" key={bot.id}>
+              <div className="catalog-card__header">
+                <span className="catalog-card__type">{bot.market}</span>
+                <span className={`status-pill status-pill--${bot.testingPriority}`}>{bot.testingPriority.replace("-", " ")}</span>
+              </div>
+              <h3>{bot.name}</h3>
+              <p>{bot.coreLogic}</p>
+              <div className="bot-card__stats">
+                <span>{bot.automationMode}</span>
+                <span>{bot.marketFit}</span>
+                <span>{bot.feeSensitivity} fee sensitivity</span>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
     </main>

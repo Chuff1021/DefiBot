@@ -515,6 +515,39 @@ a {
   margin-top: 18px;
 }
 
+.catalog-section {
+  margin-top: 24px;
+}
+
+.catalog-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.catalog-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.catalog-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.catalog-card__type {
+  color: #0c8c65;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 .chart-shell {
   height: 420px;
 }
@@ -607,6 +640,18 @@ a {
 }
 
 .status-pill--not-tradeable {
+  color: var(--rose);
+}
+
+.status-pill--phase-1 {
+  color: var(--mint);
+}
+
+.status-pill--phase-2 {
+  color: var(--gold);
+}
+
+.status-pill--phase-3 {
   color: var(--rose);
 }
 
