@@ -39,6 +39,23 @@ type WsCandle = {
 type RiskMode = "conservative" | "balanced" | "aggressive";
 
 const bankrollOptions = [100, 250, 500];
+const botPresentation: Record<StrategyId, { category: string; label: string; accent: string }> = {
+  "micro-reversion-maker": {
+    category: "AI Spot Grid",
+    label: "Low fee / high control",
+    accent: "Maker-first",
+  },
+  "trend-breakout-perp": {
+    category: "AI Futures Trend",
+    label: "Momentum / lower churn",
+    accent: "Breakout",
+  },
+  "funding-basis-carry": {
+    category: "AI Smart Rebalance",
+    label: "Carry / research mode",
+    accent: "Basis",
+  },
+};
 
 export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = "mainnet" }: Props) {
   const [overview, setOverview] = useState<MarketOverviewPayload | null>(null);
@@ -252,6 +269,7 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
   const selectedBacktest = backtests.find((summary) => summary.strategyId === selectedStrategy?.id) ?? backtests[0];
   const sourceLabel = status === "live" ? "Live feed" : overview.source === "mock" ? "Demo mode" : "Snapshot";
   const riskBadge = riskMode === "conservative" ? "Low churn" : riskMode === "balanced" ? "Balanced" : "Higher risk";
+  const selectedPresentation = selectedStrategy ? botPresentation[selectedStrategy.id] : null;
 
   return (
     <main className="page-shell page-shell--product">
@@ -277,12 +295,18 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
 
       <section className="kucoin-hero">
         <div className="kucoin-hero__copy">
-          <span className="eyebrow">Starter account friendly</span>
-          <h1>Pick a bot. Review the setup. Start paper trading.</h1>
+          <span className="eyebrow">AI bot marketplace</span>
+          <h1>Choose an AI bot and launch a paper strategy in minutes.</h1>
           <p className="hero-text">
-            This dashboard is now structured like a product workflow instead of a research console. The goal is to make
-            strategy selection, bot setup, and paper execution obvious on first use.
+            Start with a simple bot marketplace flow: pick a strategy, review the AI settings, check live market
+            conditions, and launch a paper bot without digging through a research dashboard.
           </p>
+          <div className="category-tabs">
+            <span className="category-tabs__item category-tabs__item--active">AI Recommended</span>
+            <span className="category-tabs__item">Grid Bots</span>
+            <span className="category-tabs__item">Trend Bots</span>
+            <span className="category-tabs__item">Rebalance Bots</span>
+          </div>
           <div className="hero-actions">
             <button className="primary-button" type="button">
               Start Paper Bot
@@ -295,6 +319,7 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
         <div className="account-card">
           <span className="detail-label">Paper account</span>
           <strong>${bankrollUsd}</strong>
+          <div className="account-highlight">{selectedPresentation?.category ?? "AI Bot"} selected</div>
           <div className="account-grid">
             <div>
               <span className="detail-label">Selected bot</span>
@@ -323,7 +348,7 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
           <div className="panel-header">
             <div>
               <span className="panel-title">Top strategies</span>
-              <h2>Choose your bot</h2>
+              <h2>Recommended AI bots</h2>
             </div>
           </div>
           <div className="bot-market-list">
@@ -331,6 +356,7 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
               const decision = decisions.find((entry) => entry.strategyId === strategy.id);
               const backtest = backtests.find((entry) => entry.strategyId === strategy.id);
               const isSelected = strategy.id === selectedStrategy?.id;
+              const presentation = botPresentation[strategy.id];
 
               return (
                 <button
@@ -344,15 +370,22 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
                   }}
                 >
                   <div className="bot-card__header">
-                    <strong>{strategy.name}</strong>
+                    <div>
+                      <span className="bot-card__category">{presentation.category}</span>
+                      <strong>{strategy.name}</strong>
+                    </div>
                     <span className={`status-pill status-pill--${backtest?.status ?? "needs-work"}`}>
                       {backtest?.status?.replace("-", " ") ?? "needs work"}
                     </span>
                   </div>
-                  <p>{strategy.whyItFitsSmallBalance}</p>
+                  <div className="bot-card__roi">
+                    <strong>{backtest?.netPnlPct ?? 0}%</strong>
+                    <span>test return</span>
+                  </div>
+                  <p>{presentation.label}. {strategy.whyItFitsSmallBalance}</p>
                   <div className="bot-card__stats">
                     <span>{decision?.action.toUpperCase() ?? "WAIT"}</span>
-                    <span>{backtest?.netPnlPct ?? 0}% test return</span>
+                    <span>{presentation.accent}</span>
                     <span>{strategy.feePosture}</span>
                   </div>
                 </button>
@@ -377,7 +410,7 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
           </div>
           <div className="summary-strip">
             <div className="summary-chip">
-              <span className="detail-label">Recommended action</span>
+              <span className="detail-label">AI signal</span>
               <strong className={`decision-inline decision-inline--${selectedDecision?.action ?? "wait"}`}>
                 {selectedDecision?.action.toUpperCase() ?? "WAIT"}
               </strong>
@@ -414,12 +447,12 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
           <div className="panel-header">
             <div>
               <span className="panel-title">Bot setup</span>
-              <h2>Simple configuration</h2>
+              <h2>Create AI bot</h2>
             </div>
           </div>
 
           <div className="setup-section">
-            <span className="detail-label">Choose investment</span>
+            <span className="detail-label">Investment amount</span>
             <div className="pill-row">
               {bankrollOptions.map((option) => (
                 <button
@@ -435,7 +468,7 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
           </div>
 
           <div className="setup-section">
-            <span className="detail-label">Risk preference</span>
+            <span className="detail-label">AI parameters</span>
             <div className="pill-row">
               {(["conservative", "balanced", "aggressive"] as const).map((mode) => (
                 <button
@@ -452,11 +485,11 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
 
           <div className="setup-summary">
             <div>
-              <span className="detail-label">Selected bot</span>
+              <span className="detail-label">Bot type</span>
               <p>{selectedStrategy?.name}</p>
             </div>
             <div>
-              <span className="detail-label">Target entry</span>
+              <span className="detail-label">Entry price</span>
               <p>{selectedDecision?.expectedEntry ? selectedDecision.expectedEntry.toLocaleString() : "Waiting"}</p>
             </div>
             <div>
@@ -468,11 +501,11 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
               <p>{selectedDecision?.takeProfit ? selectedDecision.takeProfit.toLocaleString() : "Not set"}</p>
             </div>
             <div>
-              <span className="detail-label">Position size</span>
+              <span className="detail-label">Order size</span>
               <p>${selectedDecision?.positionSizeUsd.toFixed(2) ?? "0.00"}</p>
             </div>
             <div>
-              <span className="detail-label">Profit factor</span>
+              <span className="detail-label">Bot quality</span>
               <p>{selectedBacktest?.profitFactor ?? 0}</p>
             </div>
           </div>
@@ -491,7 +524,7 @@ export function LiveMarketTerminal({ symbol = "BTC", interval = "1m", network = 
           <div className="panel-header">
             <div>
               <span className="panel-title">Running bot preview</span>
-              <h2>Paper bot status</h2>
+              <h2>Bot details</h2>
             </div>
           </div>
           <div className="running-bot-card">
