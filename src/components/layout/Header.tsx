@@ -31,7 +31,7 @@ export function Header({ logoUrl: _logoUrl }: { logoUrl?: string }) {
           </span>
           <div>
             <p className="website-brand-name">Kalshi BotOS</p>
-            <p className="website-brand-copy">GPT + Kalshi sandbox starter</p>
+            <p className="website-brand-copy">GPT + live Kalshi market review</p>
           </div>
         </Link>
 
@@ -52,7 +52,7 @@ export function Header({ logoUrl: _logoUrl }: { logoUrl?: string }) {
             Setup
           </Link>
           <Link href="/dashboard" className="site-button site-button-primary header-cta-primary">
-            Sandbox app
+            Live market app
           </Link>
         </div>
 

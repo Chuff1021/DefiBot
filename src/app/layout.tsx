@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kalshi BotOS",
-  description: "Wire ChatGPT OAuth to a Kalshi sandbox workflow for strategy testing, market review, and manual operator approval.",
+  description: "Wire your ChatGPT session to live Kalshi market data for strategy testing, market review, and manual operator approval.",
 };
 
 export default function RootLayout({

@@ -621,6 +621,15 @@ body::after {
   line-height: 1.7;
 }
 
+.execution-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--text);
+  font-weight: 600;
+}
+
 .market-preview-meta-column {
   display: grid;
   justify-items: end;

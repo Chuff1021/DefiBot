@@ -10,7 +10,7 @@ export function Footer() {
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.22em] text-[#9eb2e4]">production test surface</p>
-            <h2 className="mt-1 text-sm font-semibold text-white">ChatGPT OAuth × Kalshi sandbox</h2>
+            <h2 className="mt-1 text-sm font-semibold text-white">ChatGPT session × live Kalshi data</h2>
           </div>
           <ShieldCheck className="h-5 w-5 text-[#85f4d1]" />
         </div>
@@ -33,13 +33,13 @@ export function Footer() {
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-[11px] text-[#a9b6d8]">
           <p>© {currentYear} Kalshi BotOS</p>
           <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[#a8bbeb]">
-            sandbox only
+            manual only
             <ArrowUpRight className="h-3 w-3" />
           </span>
         </div>
 
         <p className="mt-2 text-[10px] text-[#7f8eb8]">
-          Operator-reviewed testing only. Market data and credentials can be connected, but this app is intentionally positioned around sandbox validation before live execution.
+          Operator-reviewed testing only. This app can read live Kalshi market data, but it is intentionally positioned around manual review before any live execution wiring.
         </p>
       </div>
     </footer>

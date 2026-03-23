@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Bot, RefreshCw, ShieldCheck, TrendingUp } from "lucide-react";
 import { ToneChip } from "@/components/trade/TradeUI";
+import { useAllocationSettings } from "@/hooks/useAllocationSettings";
+import { formatDollars } from "@/lib/allocation-settings";
 import { strategyMocks } from "@/lib/trade-mock-data";
 
 type DashboardStatus = {
@@ -37,14 +39,45 @@ type RunResult = {
   generatedAt: string;
 };
 
+type Btc15mState = {
+  market: {
+    ticker?: string;
+    title?: string;
+    yes_bid_dollars?: string;
+    yes_ask_dollars?: string;
+    volume?: number;
+  } | null;
+  signal: {
+    action: string;
+    side?: "yes" | "no" | null;
+    maxPrice?: number | null;
+    spread?: number | null;
+    reason: string;
+  };
+  candidates?: Array<{
+    ticker?: string;
+    title?: string;
+    subtitle?: string;
+    score?: number;
+    volume?: number;
+  }>;
+};
+
 export function DashboardConsole({ initialStatus }: { initialStatus: DashboardStatus }) {
   const [status, setStatus] = useState(initialStatus);
   const [selectedStrategyId, setSelectedStrategyId] = useState(strategyMocks[0]?.id ?? "");
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [btc15m, setBtc15m] = useState<Btc15mState | null>(null);
+  const [liveEnabled, setLiveEnabled] = useState(false);
+  const [orderMessage, setOrderMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { settings, ready } = useAllocationSettings();
 
   const selectedStrategy = strategyMocks.find((strategy) => strategy.id === selectedStrategyId) ?? strategyMocks[0];
+  const selectedAllocation = ready
+    ? settings.strategyAllocations[selectedStrategy?.id ?? ""] ?? 0
+    : Number(selectedStrategy?.defaultAllocation.replace("$", "") ?? "0");
 
   async function refreshStatus() {
     const response = await fetch("/api/providers/status", { cache: "no-store" });
@@ -57,6 +90,17 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
     setStatus(payload);
   }
 
+  async function refreshBtc15m() {
+    const response = await fetch("/api/kalshi/btc15m", { cache: "no-store" });
+    const payload = (await response.json()) as Btc15mState | { error: string };
+
+    if (!response.ok || "error" in payload) {
+      throw new Error("error" in payload ? payload.error : "Failed to refresh BTC 15m market.");
+    }
+
+    setBtc15m(payload);
+  }
+
   function runTask(task: () => Promise<void>) {
     setError(null);
     startTransition(() => {
@@ -66,17 +110,31 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
     });
   }
 
+  useEffect(() => {
+    const initialTimeoutId = window.setTimeout(() => {
+      refreshBtc15m().catch(() => {});
+    }, 0);
+    const intervalId = window.setInterval(() => {
+      refreshBtc15m().catch(() => {});
+    }, 15000);
+
+    return () => {
+      window.clearTimeout(initialTimeoutId);
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   return (
     <div className="dashboard-shell">
       <section className="dashboard-hero-card">
         <div>
-          <div className="section-kicker">Live sandbox control surface</div>
-          <h1 className="section-title">Run strategy analysis against real Kalshi sandbox market data with your connected ChatGPT OAuth session.</h1>
+          <div className="section-kicker">Live market control surface</div>
+          <h1 className="section-title">Run strategy analysis against live Kalshi market data with your connected ChatGPT session.</h1>
           <p className="section-copy max-w-3xl text-sm md:text-base">
-            Execution remains sandbox-only and manual. This pass is about validating provider wiring, market fetches, GPT-generated trade rationale, and operator review.
+            Execution remains manual-only. This pass is about validating provider wiring, live market fetches, GPT-generated trade rationale, and operator review before any automated live execution.
           </p>
         </div>
-        <ToneChip label="sandbox only" tone="up" />
+        <ToneChip label="manual only" tone="warning" />
       </section>
 
       <section className="bot-top-metrics">
@@ -87,18 +145,18 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
         </div>
         <div className="bot-metric-card">
           <span>Kalshi</span>
-          <strong>{status.kalshi.connected ? "Connected" : "Needs sandbox key"}</strong>
+          <strong>{status.kalshi.connected ? "Connected" : "Needs live API key"}</strong>
           <p>{status.kalshi.balance ?? status.kalshi.baseUrl}</p>
         </div>
         <div className="bot-metric-card">
           <span>Market feed</span>
           <strong>{status.markets.length}</strong>
-          <p>Open sandbox markets loaded into the app right now.</p>
+          <p>Open live markets loaded into the app right now.</p>
         </div>
         <div className="bot-metric-card">
-          <span>Execution posture</span>
-          <strong>Manual approval</strong>
-          <p>No automatic order placement is wired in this pass.</p>
+          <span>Risk posture</span>
+          <strong>{ready ? formatDollars(settings.maxPositionSize) : "Loading..."}</strong>
+          <p>{ready ? `Max per trade with ${formatDollars(settings.maxOpenExposure)} total exposure.` : "Loading local limits."}</p>
         </div>
       </section>
 
@@ -107,7 +165,7 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
           <div className="bot-panel-header">
             <div>
               <div className="section-kicker">Strategy engine</div>
-              <h2>Choose a strategy and generate a live sandbox thesis</h2>
+              <h2>Choose a strategy and generate a live market thesis</h2>
             </div>
             <Bot className="h-5 w-5 text-[var(--accent)]" />
           </div>
@@ -145,7 +203,7 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
               </div>
               <div>
                 <span>Allocation</span>
-                <strong>{selectedStrategy?.defaultAllocation}</strong>
+                <strong>{formatDollars(selectedAllocation)}</strong>
               </div>
               <div>
                 <span>Mode</span>
@@ -167,7 +225,7 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
                     const response = await fetch("/api/bot/run", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ strategyId: selectedStrategyId }),
+                      body: JSON.stringify({ strategyId: selectedStrategyId, allocation: selectedAllocation }),
                     });
                     const payload = (await response.json()) as RunResult | { error: string };
 
@@ -181,7 +239,7 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
                 }
               >
                 <TrendingUp className="h-4 w-4" />
-                Run sandbox analysis
+                Run live-market analysis
               </button>
 
               <button type="button" className="connect-button-secondary" disabled={isPending} onClick={() => runTask(refreshStatus)}>
@@ -189,6 +247,7 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
                 Refresh markets
               </button>
             </div>
+            <p className="text-xs text-[var(--text-soft)]">Change bankroll and per-strategy allocations on the Settings page.</p>
           </div>
         </div>
 
@@ -227,7 +286,7 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
               </ul>
             </div>
           ) : (
-            <p className="section-copy text-sm">Run a strategy once both providers are connected to generate the first GPT-backed sandbox trade thesis.</p>
+            <p className="section-copy text-sm">Run a strategy once both providers are connected to generate the first GPT-backed live-market trade thesis.</p>
           )}
 
           {error && (
@@ -238,10 +297,140 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
         </div>
       </section>
 
+      <section className="bot-dashboard-grid">
+        <div className="bot-launch-panel">
+          <div className="bot-panel-header">
+            <div>
+              <div className="section-kicker">Realtime BTC 15m</div>
+              <h2>Fast market execution panel</h2>
+            </div>
+            <ToneChip label="live" tone="warning" />
+          </div>
+
+          {btc15m?.market ? (
+            <div className="analysis-panel">
+              <div className="analysis-row">
+                <span>Market</span>
+                <strong>{btc15m.market.title ?? btc15m.market.ticker}</strong>
+              </div>
+              <div className="analysis-row">
+                <span>Ticker</span>
+                <strong>{btc15m.market.ticker}</strong>
+              </div>
+              <div className="analysis-row">
+                <span>Signal</span>
+                <strong>{btc15m.signal.action}</strong>
+              </div>
+              <div className="analysis-row">
+                <span>Recommended side</span>
+                <strong>{btc15m.signal.side ?? "none"}</strong>
+              </div>
+              <div className="analysis-row">
+                <span>Max entry</span>
+                <strong>{btc15m.signal.maxPrice ? `${btc15m.signal.maxPrice}c` : "--"}</strong>
+              </div>
+              <div className="analysis-row">
+                <span>Spread</span>
+                <strong>{btc15m.signal.spread ?? "--"}</strong>
+              </div>
+              <p className="analysis-summary">{btc15m.signal.reason}</p>
+            </div>
+          ) : (
+            <>
+              <p className="section-copy text-sm">No BTC 15m market is currently available in the scan.</p>
+              {btc15m?.candidates?.length ? (
+                <div className="market-preview-list">
+                  {btc15m.candidates.slice(0, 5).map((candidate) => (
+                    <div key={candidate.ticker ?? candidate.title} className="market-preview-row">
+                      <div>
+                        <p className="market-preview-tag">crypto candidate</p>
+                        <p className="market-preview-contract">{candidate.title ?? candidate.ticker ?? "Untitled market"}</p>
+                      </div>
+                      <div className="market-preview-meta market-preview-meta-column">
+                        <span>{candidate.ticker ?? "--"}</span>
+                        <span>score {candidate.score?.toFixed(1) ?? "--"}</span>
+                        <span>vol {candidate.volume ?? "--"}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
+
+        <div className="active-bot-panel">
+          <div className="bot-panel-header">
+            <div>
+              <div className="section-kicker">Execution guardrails</div>
+              <h2>One-contract live ticket</h2>
+            </div>
+            <ShieldCheck className="h-5 w-5 text-[var(--accent)]" />
+          </div>
+
+          <label className="execution-toggle">
+            <input type="checkbox" checked={liveEnabled} onChange={(event) => setLiveEnabled(event.target.checked)} />
+            <span>Arm live execution</span>
+          </label>
+
+          <p className="section-copy text-sm">
+            This ticket is capped to one contract and fill-or-kill behavior. It will only submit if you explicitly arm it.
+          </p>
+
+          <div className="connect-action-row">
+            <button
+              type="button"
+              className="connect-button-primary"
+              disabled={
+                isPending ||
+                !btc15m?.market?.ticker ||
+                !btc15m?.signal.side ||
+                !btc15m?.signal.maxPrice
+              }
+              onClick={() =>
+                runTask(async () => {
+                  const response = await fetch("/api/kalshi/orders", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      ticker: btc15m?.market?.ticker,
+                      side: btc15m?.signal.side,
+                      priceCents: btc15m?.signal.maxPrice,
+                      count: 1,
+                      liveEnabled,
+                    }),
+                  });
+                  const payload = (await response.json()) as { error?: string; order?: { order_id?: string; status?: string } };
+
+                  if (!response.ok) {
+                    throw new Error(payload.error ?? "Failed to place live order.");
+                  }
+
+                  setOrderMessage(`Live order submitted: ${payload.order?.order_id ?? "unknown"} (${payload.order?.status ?? "submitted"})`);
+                })
+              }
+            >
+              Submit live BTC 15m order
+            </button>
+
+            <button type="button" className="connect-button-secondary" disabled={isPending} onClick={() => runTask(refreshBtc15m)}>
+              <RefreshCw className="h-4 w-4" />
+              Refresh BTC 15m
+            </button>
+          </div>
+
+          {orderMessage && (
+            <div className="connect-feedback mt-4">
+              <p>{orderMessage}</p>
+            </div>
+          )}
+        </div>
+      </section>
+
       <section className="bot-runs-panel">
         <div className="bot-panel-header">
           <div>
-            <div className="section-kicker">Kalshi sandbox feed</div>
+            <div className="section-kicker">Kalshi live feed</div>
             <h2>Live market sample</h2>
           </div>
           <ToneChip label={`${status.markets.length} markets`} tone="neutral" />
@@ -266,4 +455,3 @@ export function DashboardConsole({ initialStatus }: { initialStatus: DashboardSt
     </div>
   );
 }
-

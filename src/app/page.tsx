@@ -3,17 +3,17 @@ import { ArrowRight, Bot, Cable, FlaskConical, ShieldCheck } from "lucide-react"
 import { sandboxChecklist, sandboxMarkets } from "@/lib/trade-mock-data";
 
 const proofPoints = [
-  { label: "Environment", value: "Kalshi sandbox" },
-  { label: "GPT access", value: "OAuth first" },
+  { label: "Environment", value: "Kalshi live data" },
+  { label: "GPT access", value: "Session import first" },
   { label: "Trade mode", value: "Manual approval" },
-  { label: "Goal", value: "Test trades first" },
+  { label: "Goal", value: "Review live markets safely" },
 ];
 
 const featureCards = [
   {
     icon: Cable,
     title: "Connection-first setup",
-    description: "Start with the wiring: OpenAI OAuth, Kalshi sandbox credentials, and clear environment targeting.",
+    description: "Start with the wiring: your ChatGPT session, live Kalshi credentials, and a clear manual-review posture.",
   },
   {
     icon: Bot,
@@ -22,8 +22,8 @@ const featureCards = [
   },
   {
     icon: ShieldCheck,
-    title: "Sandbox-only execution posture",
-    description: "Keep every order in test mode while you validate signal quality, payload shape, and approval flow.",
+    title: "Manual-only execution posture",
+    description: "Use live market data while keeping final execution decisions and order wiring behind deliberate operator review.",
   },
 ];
 
@@ -31,7 +31,7 @@ const workflow = [
   {
     step: "01",
     title: "Connect providers",
-    description: "Add OpenAI and Kalshi sandbox details so the app knows where prompts and orders should route.",
+    description: "Add your ChatGPT session and live Kalshi credentials so prompts and market reads route correctly.",
   },
   {
     step: "02",
@@ -41,7 +41,7 @@ const workflow = [
   {
     step: "03",
     title: "Refine the strategy",
-    description: "Review the sandbox dashboard, tune prompts and risk controls, then prepare for deeper automation.",
+    description: "Review the live-data dashboard, tune prompts and risk controls, then decide whether deeper automation is justified.",
   },
 ];
 
@@ -50,10 +50,10 @@ export default function HomePage() {
     <div className="homepage-shell">
       <section className="homepage-hero">
         <div className="hero-content-block">
-          <span className="site-eyebrow">Sandbox starter</span>
-          <h1 className="homepage-hero-title">A simple starter app to wire GPT + Kalshi sandbox before refining the strategy.</h1>
+          <span className="site-eyebrow">Live-data starter</span>
+          <h1 className="homepage-hero-title">A simple starter app to wire GPT + live Kalshi market data before refining the strategy.</h1>
           <p className="homepage-hero-copy">
-            This version strips the product down to the essentials: connect OpenAI, connect Kalshi sandbox, review a safe test-trading workflow, and use the dashboard as the first operational surface.
+            This version strips the product down to the essentials: connect your ChatGPT session, connect your live Kalshi account, review live markets safely, and use the dashboard as the first operational surface.
           </p>
           <div className="hero-cta-row">
             <Link href="/connect" className="site-button site-button-primary">
@@ -61,7 +61,7 @@ export default function HomePage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/dashboard" className="site-button site-button-secondary">
-              Open sandbox app
+              Open live-data app
             </Link>
           </div>
           <div className="hero-proof-row">
@@ -80,7 +80,7 @@ export default function HomePage() {
               <span className="site-eyebrow">What ships first</span>
               <h2>Core wiring checkpoints</h2>
             </div>
-            <span className="visual-status-pill">Sandbox</span>
+            <span className="visual-status-pill">Manual</span>
           </div>
 
           <div className="visual-highlight-panel">
@@ -95,7 +95,7 @@ export default function HomePage() {
               </div>
               <div>
                 <p className="visual-label">Kalshi env</p>
-                <strong>Sandbox</strong>
+                <strong>Production</strong>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function HomePage() {
       <section className="homepage-section">
         <div className="section-heading-block">
           <span className="site-eyebrow">What this app focuses on</span>
-          <h2 className="site-section-title">Enough product surface to test wiring, prompts, and sandbox order flow without extra noise.</h2>
+          <h2 className="site-section-title">Enough product surface to test wiring, prompts, and live-data review without extra noise.</h2>
         </div>
 
         <div className="feature-card-grid">
@@ -142,7 +142,7 @@ export default function HomePage() {
       <section className="homepage-section workflow-section">
         <div className="section-heading-block compact-heading">
           <span className="site-eyebrow">Test sequence</span>
-          <h2 className="site-section-title">The path from connection setup to your first safe sandbox trade review.</h2>
+          <h2 className="site-section-title">The path from connection setup to your first safe live-market review.</h2>
         </div>
 
         <div className="workflow-grid">
@@ -185,7 +185,7 @@ export default function HomePage() {
           <span className="site-eyebrow">Ready to start</span>
           <h2 className="site-section-title">Open the connect screen, enter sandbox details, and move straight into test-trade review.</h2>
           <p className="banner-copy">
-            The first milestone is not full automation. It is reliable provider wiring, a safe sandbox loop, and a dashboard you can use as a working base.
+            The first milestone is not full automation. It is reliable provider wiring, a safe live-data review loop, and a dashboard you can use as a working base.
           </p>
         </div>
         <div className="hero-cta-row banner-actions">

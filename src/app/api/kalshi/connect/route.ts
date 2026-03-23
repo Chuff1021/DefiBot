@@ -41,8 +41,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, balance: validation.balance });
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "Failed to connect to Kalshi sandbox.";
+    const message = cause instanceof Error ? cause.message : "Failed to connect to Kalshi production.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

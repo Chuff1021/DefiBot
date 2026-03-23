@@ -233,7 +233,7 @@ export async function generateStrategyAnalysis(input: {
             {
               type: "input_text",
               text:
-                "You are helping a Kalshi sandbox bot operator. Return compact JSON with keys summary, action, confidence, risk, candidateTicker, and notes. Keep it sandbox-oriented and conservative.",
+                "You are helping a Kalshi market operator reviewing live markets. Return compact JSON with keys summary, action, confidence, risk, candidateTicker, and notes. Keep it conservative and manual-review oriented.",
             },
           ],
         },

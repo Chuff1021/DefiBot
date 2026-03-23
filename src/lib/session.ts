@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { decryptJson, encryptJson } from "@/lib/crypto";
 import { env } from "@/lib/env";
 
-const SESSION_COOKIE = "kalshi_botos_session";
+const OPENAI_SESSION_COOKIE = "kalshi_botos_openai";
+const KALSHI_SESSION_COOKIE = "kalshi_botos_kalshi";
 const OAUTH_COOKIE = "kalshi_botos_oauth";
 
 export type OpenAiSession = {
@@ -48,27 +49,48 @@ function getCookieOptions(maxAgeSeconds: number) {
 
 export async function readSession(): Promise<AppSession> {
   const cookieStore = await cookies();
-  const raw = cookieStore.get(SESSION_COOKIE)?.value;
+  const openAiRaw = cookieStore.get(OPENAI_SESSION_COOKIE)?.value;
+  const kalshiRaw = cookieStore.get(KALSHI_SESSION_COOKIE)?.value;
+  const session: AppSession = {};
 
-  if (!raw) {
-    return {};
+  if (openAiRaw) {
+    try {
+      session.openai = decryptJson<OpenAiSession>(env.sessionSecret, openAiRaw);
+    } catch {
+      session.openai = undefined;
+    }
   }
 
-  try {
-    return decryptJson<AppSession>(env.sessionSecret, raw);
-  } catch {
-    return {};
+  if (kalshiRaw) {
+    try {
+      session.kalshi = decryptJson<KalshiSession>(env.sessionSecret, kalshiRaw);
+    } catch {
+      session.kalshi = undefined;
+    }
   }
+
+  return session;
 }
 
 export async function writeSession(session: AppSession) {
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, encryptJson(env.sessionSecret, session), getCookieOptions(60 * 60 * 24 * 14));
+  if (session.openai) {
+    cookieStore.set(OPENAI_SESSION_COOKIE, encryptJson(env.sessionSecret, session.openai), getCookieOptions(60 * 60 * 24 * 14));
+  } else {
+    cookieStore.delete(OPENAI_SESSION_COOKIE);
+  }
+
+  if (session.kalshi) {
+    cookieStore.set(KALSHI_SESSION_COOKIE, encryptJson(env.sessionSecret, session.kalshi), getCookieOptions(60 * 60 * 24 * 14));
+  } else {
+    cookieStore.delete(KALSHI_SESSION_COOKIE);
+  }
 }
 
 export async function clearSession() {
   const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
+  cookieStore.delete(OPENAI_SESSION_COOKIE);
+  cookieStore.delete(KALSHI_SESSION_COOKIE);
 }
 
 export async function writeOAuthStateCookie(state: OAuthCookieState) {
@@ -95,4 +117,3 @@ export async function clearOAuthStateCookie() {
   const cookieStore = await cookies();
   cookieStore.delete(OAUTH_COOKIE);
 }
-

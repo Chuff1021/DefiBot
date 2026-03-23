@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { ChangeEvent, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppTopbar, BottomActionBar, StatusChip } from "@/components/trade/TradeUI";
 
@@ -29,13 +29,12 @@ type ChipTone = "up" | "warning" | "neutral" | "danger";
 export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatus }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [status, setStatus] = useState(initialStatus);
   const [accessKeyId, setAccessKeyId] = useState("");
   const [privateKeyPem, setPrivateKeyPem] = useState("");
   const [baseUrl, setBaseUrl] = useState(initialStatus.kalshi.baseUrl);
   const [tokenJson, setTokenJson] = useState("");
-  const [manualAuthorizeUrl, setManualAuthorizeUrl] = useState("");
-  const [manualCallbackUrl, setManualCallbackUrl] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -70,14 +69,42 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
     });
   }
 
+  async function saveTokenJson(rawTokenJson: string) {
+    const response = await fetch("/api/auth/openai/paste-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tokenJson: rawTokenJson }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      throw new Error(payload.error ?? "Failed to save token.");
+    }
+    await reloadStatus();
+    router.refresh();
+  }
+
+  async function handleTokenFileSelect(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const text = await file.text();
+    runAction(async () => {
+      await saveTokenJson(text);
+      setFeedback("Local ChatGPT session imported successfully.");
+      setTokenJson("");
+    });
+
+    event.target.value = "";
+  }
+
   const connectError = searchParams.get("error");
   const openAiNotice = searchParams.get("openai");
 
   return (
     <>
       <AppTopbar
-        title="Connect ChatGPT OAuth and Kalshi sandbox"
-        subtitle="Provider credentials are stored in an encrypted server-side session cookie so you can test real flows without shipping secrets into the client."
+        title="Connect your ChatGPT session and live Kalshi account"
+        subtitle="The reliable path is importing your existing ChatGPT/Codex session, then connecting your live Kalshi API credentials for market data and manual-review workflows."
         rightLabel="session-backed"
       />
 
@@ -87,7 +114,7 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
             <h2 className="text-base font-semibold text-[var(--text)]">OpenAI / ChatGPT</h2>
             <StatusChip label={oauthStatus.label} tone={oauthStatus.tone} />
           </div>
-          <p className="text-sm text-[var(--text-muted)]">Use ChatGPT OAuth to power strategy analysis and research calls through your own account.</p>
+          <p className="text-sm text-[var(--text-muted)]">Use your existing ChatGPT-authenticated session to power strategy analysis and research calls through your own account.</p>
 
           {status.openai.connected ? (
             <div className="connect-form-block">
@@ -123,78 +150,26 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
             <div className="connect-form-block">
               <div className="connect-detail-grid">
                 <div className="connect-detail-cell">
-                  <span>OAuth flow</span>
-                  <strong>{status.config.openAiOAuthReady ? "Configured" : "Needs env"}</strong>
+                  <span>Recommended path</span>
+                  <strong>Import existing session</strong>
                 </div>
                 <div className="connect-detail-cell">
-                  <span>Local import</span>
+                  <span>Local helper</span>
                   <strong>{status.config.allowLocalCodexImport ? "Available" : "Disabled"}</strong>
                 </div>
               </div>
-              <a href="/api/auth/openai/start" className={`connect-button-primary ${!status.config.openAiOAuthReady ? "button-disabled" : ""}`}>
-                Start ChatGPT OAuth
-              </a>
+
               <button
                 type="button"
-                className="connect-button-secondary"
+                className="connect-button-primary"
                 disabled={isPending}
                 onClick={() =>
-                  runAction(async () => {
-                    const response = await fetch("/api/auth/openai/manual/start", { method: "POST" });
-                    const payload = (await response.json()) as { error?: string; authorizeUrl?: string };
-                    if (!response.ok) {
-                      throw new Error(payload.error ?? "Failed to create manual OAuth URL.");
-                    }
-                    setManualAuthorizeUrl(payload.authorizeUrl ?? "");
-                    setFeedback("Manual OAuth URL generated. Open it in a browser, finish login, then paste the callback URL below.");
-                  })
+                  fileInputRef.current?.click()
                 }
               >
-                Generate manual OAuth URL
+                Import auth.json file
               </button>
-              {manualAuthorizeUrl && (
-                <>
-                  <label className="connect-field">
-                    <span>Manual OAuth URL</span>
-                    <textarea readOnly value={manualAuthorizeUrl} rows={6} />
-                  </label>
-                  <a href={manualAuthorizeUrl} target="_blank" rel="noreferrer" className="connect-button-primary">
-                    Open OAuth login
-                  </a>
-                  <label className="connect-field">
-                    <span>Paste callback URL</span>
-                    <textarea
-                      value={manualCallbackUrl}
-                      onChange={(event) => setManualCallbackUrl(event.target.value)}
-                      placeholder="Paste the full callback URL after OpenAI redirects back"
-                      rows={6}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="connect-button-secondary"
-                    disabled={isPending || !manualCallbackUrl.trim()}
-                    onClick={() =>
-                      runAction(async () => {
-                        const response = await fetch("/api/auth/openai/manual/complete", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ callbackUrl: manualCallbackUrl }),
-                        });
-                        const payload = (await response.json()) as { error?: string };
-                        if (!response.ok) {
-                          throw new Error(payload.error ?? "Failed to complete manual OAuth.");
-                        }
-                        setManualCallbackUrl("");
-                        await reloadStatus();
-                        router.refresh();
-                      })
-                    }
-                  >
-                    Complete manual OAuth
-                  </button>
-                </>
-              )}
+              <input ref={fileInputRef} type="file" accept="application/json,.json" className="sr-only" onChange={handleTokenFileSelect} />
               {status.config.allowLocalCodexImport && (
                 <button
                   type="button"
@@ -220,7 +195,7 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
                 <textarea
                   value={tokenJson}
                   onChange={(event) => setTokenJson(event.target.value)}
-                  placeholder='Paste the contents of ~/.codex/auth.json or a token payload here'
+                  placeholder='Paste the contents of ~/.codex/auth.json or a token payload here as a fallback'
                   rows={7}
                 />
               </label>
@@ -230,39 +205,33 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
                 disabled={isPending || !tokenJson.trim()}
                 onClick={() =>
                   runAction(async () => {
-                    const response = await fetch("/api/auth/openai/paste-token", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ tokenJson }),
-                    });
-                    const payload = (await response.json()) as { error?: string };
-                    if (!response.ok) {
-                      throw new Error(payload.error ?? "Failed to save pasted token.");
-                    }
+                    await saveTokenJson(tokenJson);
                     setTokenJson("");
-                    await reloadStatus();
-                    router.refresh();
+                    setFeedback("Pasted ChatGPT session saved successfully.");
                   })
                 }
               >
                 Save pasted token
               </button>
+              <div className="connect-feedback compact-feedback">
+                <p>Use the `auth.json` file from your local `~/.codex` directory if you are already signed in with ChatGPT there.</p>
+              </div>
             </div>
           )}
         </div>
 
         <div className="connect-card">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-[var(--text)]">Kalshi Sandbox</h2>
+            <h2 className="text-base font-semibold text-[var(--text)]">Kalshi Production</h2>
             <StatusChip label={status.kalshi.connected ? "connected" : "disconnected"} tone={status.kalshi.connected ? "up" : "danger"} />
           </div>
-          <p className="text-sm text-[var(--text-muted)]">Save your sandbox key ID and RSA private key to the encrypted session, then validate them against the sandbox balance endpoint.</p>
+          <p className="text-sm text-[var(--text-muted)]">Save your live Kalshi API key ID and RSA private key to the encrypted session, then validate them against the production balance endpoint. Order placement remains manually gated.</p>
 
           <div className="connect-form-block">
             <div className="connect-field-grid">
               <label className="connect-field">
-                <span>Sandbox base URL</span>
-                <input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="https://demo-api.kalshi.co" />
+                <span>Production base URL</span>
+                <input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="https://api.elections.kalshi.com" />
               </label>
               <label className="connect-field">
                 <span>Access key ID</span>
@@ -292,9 +261,9 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
                     });
                     const payload = (await response.json()) as { error?: string; balance?: string };
                     if (!response.ok) {
-                      throw new Error(payload.error ?? "Failed to connect Kalshi sandbox.");
+                      throw new Error(payload.error ?? "Failed to connect Kalshi production.");
                     }
-                    setFeedback(`Kalshi sandbox connected. Balance: ${payload.balance ?? "Unavailable"}`);
+                    setFeedback(`Kalshi production connected. Balance: ${payload.balance ?? "Unavailable"}`);
                     setAccessKeyId("");
                     setPrivateKeyPem("");
                     await reloadStatus();
@@ -314,7 +283,7 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
                     runAction(async () => {
                       const response = await fetch("/api/kalshi/disconnect", { method: "POST" });
                       if (!response.ok) {
-                        throw new Error("Failed to disconnect Kalshi sandbox.");
+                        throw new Error("Failed to disconnect Kalshi production.");
                       }
                       await reloadStatus();
                       router.refresh();
@@ -373,7 +342,7 @@ export function ConnectConsole({ initialStatus }: { initialStatus: ProviderStatu
         </div>
       </section>
 
-      <BottomActionBar secondaryLabel="Back home" secondaryHref="/" primaryLabel="Open sandbox dashboard" primaryHref="/dashboard" />
+      <BottomActionBar secondaryLabel="Back home" secondaryHref="/" primaryLabel="Open live-data dashboard" primaryHref="/dashboard" />
     </>
   );
 }
