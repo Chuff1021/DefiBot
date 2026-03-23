@@ -40,6 +40,10 @@ a {
   padding: 24px 0 72px;
 }
 
+.page-shell--product {
+  padding-top: 18px;
+}
+
 .hero-panel,
 .panel,
 .strategy-card,
@@ -58,6 +62,150 @@ a {
   gap: 18px;
   border-radius: 28px;
   padding: 28px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(7, 13, 24, 0.78);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-lockup > div:last-child {
+  display: grid;
+}
+
+.brand-lockup strong {
+  font-size: 1rem;
+}
+
+.brand-lockup span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6ee7b7, #fbbf24);
+  color: #04101a;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+}
+
+.topbar-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.topbar-nav__item {
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+}
+
+.topbar-nav__item--active {
+  background: rgba(110, 231, 183, 0.12);
+  color: var(--text);
+}
+
+.topbar-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.kucoin-hero {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.kucoin-hero__copy,
+.account-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.primary-button,
+.secondary-button,
+.pill-button,
+.bot-card {
+  border: 0;
+  cursor: pointer;
+}
+
+.primary-button,
+.secondary-button,
+.pill-button {
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #6ee7b7, #a7f3d0);
+  color: #04101a;
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.primary-button--full,
+.secondary-button--full {
+  width: 100%;
+}
+
+.secondary-button--full {
+  margin-top: 10px;
+}
+
+.account-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 2rem;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
 }
 
 .hero-copy h1,
@@ -141,12 +289,23 @@ a {
   margin-top: 20px;
 }
 
+.workspace-grid--kucoin {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
 .panel {
   border-radius: 24px;
   padding: 22px;
 }
 
 .panel--chart {
+  min-height: 520px;
+}
+
+.marketplace-panel,
+.setup-panel {
   min-height: 520px;
 }
 
@@ -173,6 +332,145 @@ a {
   padding: 7px 10px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.75rem;
+}
+
+.bot-market-list {
+  display: grid;
+  gap: 14px;
+}
+
+.bot-card {
+  width: 100%;
+  text-align: left;
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.bot-card:hover,
+.bot-card--active {
+  border-color: rgba(110, 231, 183, 0.35);
+  background: rgba(110, 231, 183, 0.08);
+  transform: translateY(-1px);
+}
+
+.bot-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.bot-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.bot-card__stats span,
+.summary-chip,
+.chart-footer-card,
+.running-bot-card__row,
+.pill-button {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bot-card__stats span {
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summary-chip {
+  border-radius: 18px;
+  padding: 12px 14px;
+}
+
+.summary-chip strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.decision-inline--long {
+  color: var(--mint);
+}
+
+.decision-inline--short {
+  color: var(--rose);
+}
+
+.decision-inline--wait {
+  color: var(--gold);
+}
+
+.chart-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.chart-footer-card {
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.setup-section + .setup-section {
+  margin-top: 18px;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pill-button {
+  color: var(--muted);
+}
+
+.pill-button--active {
+  color: var(--text);
+  border-color: rgba(110, 231, 183, 0.35);
+  background: rgba(110, 231, 183, 0.08);
+}
+
+.setup-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.running-bot-card {
+  display: grid;
+  gap: 12px;
+}
+
+.running-bot-card__row {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.bottom-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
 }
 
 .chart-shell {
@@ -333,6 +631,18 @@ a {
 }
 
 @media (min-width: 980px) {
+  .kucoin-hero {
+    grid-template-columns: 1.4fr 0.8fr;
+  }
+
+  .workspace-grid--kucoin {
+    grid-template-columns: 0.9fr 1.4fr 0.9fr;
+  }
+
+  .bottom-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .hero-panel {
     grid-template-columns: 1.35fr 0.9fr;
     align-items: end;
@@ -362,5 +672,17 @@ a {
 
   .chart-shell {
     height: 300px;
+  }
+
+  .topbar,
+  .topbar-nav,
+  .topbar-meta,
+  .hero-actions,
+  .account-grid,
+  .summary-strip,
+  .chart-footer-grid,
+  .setup-summary,
+  .bottom-grid {
+    display: grid;
   }
 }
